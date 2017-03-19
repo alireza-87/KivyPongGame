@@ -1,5 +1,7 @@
 #@AlirezaKarimi
 #alireza.karimi.67@gmail.com
+
+from GameEngine import Engine
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty
@@ -11,6 +13,13 @@ class PongGame(Widget):
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
+    game_engine = Engine()
+
+    def start_game(self):
+        self.game_engine.start(self.update)
+
+    def stop_game(self):
+        self.game_engine.stop()
 
     def serve_ball(self, vel=(4, 0)):
         self.ball.center = self.center
@@ -28,10 +37,13 @@ class PongGame(Widget):
         if self.ball.x < self.x:
             self.player2.score += 1
             self.serve_ball(vel=(4, 0))
+
         if self.ball.x > self.width:
             self.player1.score += 1
             self.serve_ball(vel=(-4, 0))
 
+        if self.player1.score == 1 or self.player2.score ==1:
+            self.stop_game()
         #if (self.ball.y < 0) or (self.ball.top > self.height):
         #    self.ball.velocity_y *= -1
 
@@ -67,7 +79,7 @@ class PongApp(App):
     def build(self):
         game = PongGame()
         game.serve_ball()
-        Clock.schedule_interval(game.update, 1.0/60.0)
+        game.start_game()
         return game
 
 
