@@ -1,5 +1,11 @@
 #@AlirezaKarimi
 #alireza.karimi.67@gmail.com
+from kivy.uix.button import Button
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
+from kivy.uix.layout import Layout
+from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
 
 from GameEngine import Engine
 from kivy.app import App
@@ -7,6 +13,15 @@ from kivy.clock import Clock
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
+
+
+class WinAlarm(GridLayout):
+    def __init__(self, **kwargs):
+        self.register_event_type('on_answer')
+        super(WinAlarm, self).__init__(**kwargs)
+
+    def on_answer(self, *args):
+        pass
 
 
 class PongGame(Widget):
@@ -20,6 +35,12 @@ class PongGame(Widget):
 
     def stop_game(self):
         self.game_engine.stop()
+
+    def restart_game(self):
+        self.player1.score = 0
+        self.player2.score = 0
+        self.serve_ball()
+        self.start_game()
 
     def serve_ball(self, vel=(4, 0)):
         self.ball.center = self.center
@@ -42,19 +63,33 @@ class PongGame(Widget):
             self.player1.score += 1
             self.serve_ball(vel=(-4, 0))
 
-        if self.player1.score == 1 or self.player2.score ==1:
+        if self.player1.score == 1:
             self.stop_game()
-        #if (self.ball.y < 0) or (self.ball.top > self.height):
-        #    self.ball.velocity_y *= -1
-
-        #if (self.ball.x < 0) or (self.ball.right > self.width):
-        #    self.ball.velocity_x *= -1
+            content = WinAlarm()
+            content.bind(on_answer=self.alarm_answer)
+            self.popup = Popup(title="Player 1 Win the game", content=content, size_hint=(None, None), size=(300, 200),
+                               auto_dismiss=False)
+            self.popup.open()
+        elif self.player2.score == 1:
+            self.stop_game()
+            content = WinAlarm()
+            content.bind(on_answer=self.alarm_answer)
+            self.popup = Popup(title="Player 2 Win the game", content=content, size_hint=(None, None), size=(300, 200),
+                               auto_dismiss=False)
+            self.popup.open()
 
     def on_touch_move(self, touch):
         if touch.x < self.width /3:
             self.player1.center_y = touch.y
         if touch.x > self.width - self.width / 3:
             self.player2.center_y = touch.y
+
+    def alarm_answer(self, instance, play_again):
+        if play_again == "yes":
+            self.popup.dismiss()
+            self.restart_game()
+        elif play_again == "no":
+            self.popup.dismiss()
 
 
 class PongPaddle(Widget):
@@ -65,6 +100,7 @@ class PongPaddle(Widget):
             speed_up = 1.1
             offset = 0.02 * Vector(0, ball.center_y - self.center_y)
             ball.velocity = speed_up * (offset - ball.velocity)
+
 
 class PongBall(Widget):
     velocity_x = NumericProperty(0)
