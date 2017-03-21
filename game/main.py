@@ -1,27 +1,36 @@
 #@AlirezaKarimi
 #alireza.karimi.67@gmail.com
-from kivy.uix.button import Button
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.layout import Layout
-from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
+from kivy.uix.screenmanager import ScreenManager, Screen
 
-from GameEngine import Engine
+from game_engine import Engine
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
 
+from win_popup import WinAlarm
 
-class WinAlarm(GridLayout):
+sm = ScreenManager()
+
+
+class SettingsScreen(Screen):
+    pass
+
+
+class MainScreen(Screen):
+    pass
+
+
+class GameScreen(Screen):
     def __init__(self, **kwargs):
-        self.register_event_type('on_answer')
-        super(WinAlarm, self).__init__(**kwargs)
+        super(GameScreen, self).__init__(**kwargs)
+        self.game = PongGame()
+        self.game.serve_ball()
+        self.add_widget(self.game)
 
-    def on_answer(self, *args):
-        pass
+    def start_game(self):
+        self.game.start_game()
 
 
 class PongGame(Widget):
@@ -29,6 +38,13 @@ class PongGame(Widget):
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
     game_engine = Engine()
+
+    def open_main(self):
+        self.game_engine.stop()
+        self.player1.score = 0
+        self.player2.score = 0
+        self.serve_ball()
+        sm.current = 'MainScreen'
 
     def start_game(self):
         self.game_engine.start(self.update)
@@ -90,6 +106,7 @@ class PongGame(Widget):
             self.restart_game()
         elif play_again == "no":
             self.popup.dismiss()
+            sm.current = 'MainScreen'
 
 
 class PongPaddle(Widget):
@@ -113,10 +130,11 @@ class PongBall(Widget):
 
 class PongApp(App):
     def build(self):
-        game = PongGame()
-        game.serve_ball()
-        game.start_game()
-        return game
+        sm.add_widget(MainScreen(name='MainScreen'))
+        sm.add_widget(GameScreen(name='GameScreen'))
+        sm.add_widget(SettingsScreen(name='SettingScreen'))
+        sm.current = 'MainScreen'
+        return sm
 
 
 if __name__ == '__main__':

@@ -1,3 +1,5 @@
+#@AlirezaKarimi
+#alireza.karimi.67@gmail.com
 from kivy.clock import Clock
 
 
